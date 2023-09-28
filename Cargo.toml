@@ -1,0 +1,6 @@
+[workspace]
+members = ["lib/*", "lib/parser/fuzz"]
+resolver = "2"
+
+[profile.bench]
+debug = true

@@ -1,0 +1,9 @@
+[package]
+name = "trax-parser-fuzz"
+publish = false
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hongg = "0.5"
+trax-parser = { path = "../" }

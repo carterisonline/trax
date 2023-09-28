@@ -1,0 +1,18 @@
+[package]
+name = "trax-parser"
+version = "0.14.0"
+description = "TRAX parser based on https://github.com/RazrFalcom/xmlparser"
+repository = "https://github.com/carterisonline/trax/tree/trunk/lib/parser"
+edition = "2021"
+publish = false
+authors = [
+    "Evgeniy Reizner <razrfalcon@gmail.com>",
+    "Carter Reeb <me@carteris.online>",
+]
+
+[dev-dependencies]
+criterion = "0.5.1"
+
+[[bench]]
+name = "parse"
+harness = false
