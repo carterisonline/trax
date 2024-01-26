@@ -1,0 +1,12 @@
+xml:
+  type: web
+  url: http://www.w3.org/TR/2008/REC-xml-20081126/
+  title: Extensible Markup Language (XML) 1.0
+  date: 2008-11-26
+  edition: 5
+  editor:
+    - Bray, Tim
+    - Paoli, Jean
+    - Sperberg-McQueen, C. M.
+    - Maler, Eve
+    - Yergeau, François

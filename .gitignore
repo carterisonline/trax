@@ -3,3 +3,5 @@ target/
 # https://github.com/flamegraph-rs/flamegraph
 perf.data*
 flamegraph.svg
+
+doc/*.pdf
