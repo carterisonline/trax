@@ -153,6 +153,12 @@ impl<'a> Stream<'a> {
         self.pos += n;
     }
 
+    /// Traverse backwards 1 byte.
+    #[inline(always)]
+    pub fn back(&mut self) {
+        self.pos -= 1;
+    }
+
     /// Checks that the stream starts with a selected text.
     ///
     /// We are using `&[u8]` instead of `&str` for performance reasons.

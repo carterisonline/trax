@@ -1,5 +1,5 @@
 [workspace]
-members = ["lib/*", "lib/parser/fuzz"]
+members = ["lib/*"]
 resolver = "2"
 
 [profile.bench]

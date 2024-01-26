@@ -1,6 +1,6 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
-const SRC: &str = include_str!("../todo.trax");
+const SRC: &str = include_str!("../../../doc/todo.trax");
 
 fn parse(text: &str) -> Result<(), trax_parser::Error> {
     for token in trax_parser::Tokenizer::from(text) {

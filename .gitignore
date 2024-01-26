@@ -1,3 +1,5 @@
 target/
-hfuzz_target/
-hfuzz_workspace/
+
+# https://github.com/flamegraph-rs/flamegraph
+perf.data*
+flamegraph.svg

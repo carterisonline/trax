@@ -1,0 +1,38 @@
+<trax>
+
+    <class:Todo>
+        <let:title String />
+        <let:done Bool />
+        <let:created String />
+        <let:desc String />
+
+        <Card max="width" direction="right">
+            <Tooltip direction="right" visible:hover pin:bottom="parent:top" pin:center="mouse:x" detach>
+                Created
+                <read:created />
+                .
+            </Tooltip>
+            <bind:done send="update" />
+            <bind:desc send="submit" max="width" />
+            <Button send="click">
+                Manually Update
+            </Button>
+            <Button send="click" clear:self="click">
+                Delete (!)
+            </Button>
+        </Card>
+    </class:Todo>
+
+    <Frame>
+
+        <Head center>
+            <H1> Example Website </H1>
+        </Head>
+
+        <Body>
+            /* The Todos can either be put here initially using a template language, or the server can issue an "insert" command */
+        </Body>
+
+    </Frame>
+
+</trax>

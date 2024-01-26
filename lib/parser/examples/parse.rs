@@ -17,9 +17,10 @@ fn main() {
 }
 
 fn parse(text: &str) -> Result<(), trax_parser::Error> {
-    for token in trax_parser::Tokenizer::from(text) {
-        println!("{:#?}", token?);
-    }
+    println!("{}", trax_parser::Tokenizer::from(text));
+    // for token in trax_parser::Tokenizer::from(text) {
+    //     println!("{:#?}", token?);
+    // }
 
     Ok(())
 }

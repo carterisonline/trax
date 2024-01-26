@@ -43,6 +43,9 @@ for token in trax_parser::Tokenizer::from("<tagname name='value' modifier/>") {
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
+#[macro_use]
+extern crate std;
+
 macro_rules! matches {
     ($expression:expr, $($pattern:tt)+) => {
         match $expression {
@@ -52,6 +55,7 @@ macro_rules! matches {
     }
 }
 
+mod display;
 mod error;
 mod stream;
 mod strspan;
@@ -360,14 +364,6 @@ impl<'a> Tokenizer<'a> {
         let text = s.consume_chars(|s, _| !(s.starts_with(b"*/")))?;
         s.skip_string(b"*/")?;
 
-        // if text.as_str().contains("--") {
-        //     return Err(StreamError::InvalidCommentData);
-        // }
-
-        // if text.as_str().ends_with('-') {
-        //     return Err(StreamError::InvalidCommentEnd);
-        // }
-
         let span = s.slice_back(start);
 
         Ok(Token::Comment { text, span })
@@ -473,6 +469,10 @@ impl<'a> Tokenizer<'a> {
                 span,
             })
         } else {
+            s.back();
+            if !s.starts_with_space() {
+                s.advance(1);
+            }
             let span = s.slice_back(start);
 
             Ok(Token::Modifier {
@@ -511,7 +511,6 @@ impl<'a> Tokenizer<'a> {
         }
 
         let text = s.slice_back(start);
-        //let text = s.consume_chars(|_, c| c != '<')?;
 
         // According to the spec, `]]>` must not appear inside a Text node.
         // https://www.w3.org/TR/xml/#syntax
