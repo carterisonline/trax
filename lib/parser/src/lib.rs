@@ -290,6 +290,8 @@ impl<'a> Tokenizer<'a> {
                 _ => Some(Err(Error::UnknownToken(s.gen_text_pos()))),
             },
             State::Elements => {
+                s.skip_spaces();
+
                 // Use `match` only here, because only this section is performance-critical.
                 match s.curr_byte() {
                     Ok(b'<') => match s.next_byte() {
@@ -510,15 +512,14 @@ impl<'a> Tokenizer<'a> {
             }
         }
 
-        let text = s.slice_back(start);
-
-        // According to the spec, `]]>` must not appear inside a Text node.
-        // https://www.w3.org/TR/xml/#syntax
-        //
-        // Search for `>` first, since it's a bit faster than looking for `]]>`.
-        if text.as_str().contains('>') && text.as_str().contains("]]>") {
-            return Err(StreamError::InvalidCharacterData);
+        // trim trailing whitespace
+        s.back();
+        while s.starts_with_space() {
+            s.back();
         }
+        s.advance(1);
+
+        let text = s.slice_back(start);
 
         Ok(Token::Text { text })
     }
