@@ -108,7 +108,6 @@ mod test {
 </root>",
         Token::ElementStart("", "root", 0..5),
         Token::ElementEnd(ElementEnd::Open, 5..6),
-        Token::Text("\n", 6..7),
         Token::ElementEnd(ElementEnd::Close("", "root"), 7..14),
         Token::Error("unknown token at 3:1".to_string())
     );
