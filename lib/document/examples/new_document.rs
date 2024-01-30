@@ -1,26 +1,23 @@
-use std::env;
-use std::fs;
-use std::io::Read;
+use std::{env, fs, io::Read};
 
 fn main() {
     let args = env::args().collect::<Vec<String>>();
     if args.len() != 2 {
-        println!("Usage: parse file.trax");
+        println!("Usage: new_document file.trax");
         return;
     }
 
     let text = load_file(&args[1]);
 
-    if let Err(e) = parse(&text) {
+    if let Err(e) = new_document(&text) {
         println!("Error: {}.", e);
     }
 }
 
-fn parse(text: &str) -> Result<(), trax_parser::Error> {
-    // println!("{}", trax_parser::Tokenizer::from(text));
-    for token in trax_parser::Tokenizer::from(text) {
-        println!("{:#?}", token?);
-    }
+fn new_document(text: &str) -> Result<(), trax_document::DocumentParseError> {
+    let document = trax_document::Document::new(text)?;
+    println!("{:#?}", document);
+    println!("{}", document.into_string());
 
     Ok(())
 }

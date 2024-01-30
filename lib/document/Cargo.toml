@@ -1,0 +1,12 @@
+[package]
+name = "trax-document"
+version = "0.1.0"
+description = "TRAX document representation"
+repository = "https://github.com/carterisonline/trax/tree/trunk/lib/document"
+edition = "2021"
+publish = false
+authors = ["Carter Reeb <me@carteris.online>"]
+
+[dependencies]
+thiserror = "1"
+trax-parser = { path = "../parser" }

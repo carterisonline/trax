@@ -548,3 +548,57 @@ impl<'a> Iterator for Tokenizer<'a> {
         t
     }
 }
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+/// Range in text.
+///
+/// Indicates two row/lines and columns in the original text. Each starting from 1:1.
+pub struct TextRange(TextPos, TextPos);
+
+impl TextRange {
+    /// Create a new [TextRange] from a start and end [TextPos]
+    pub fn new(start: TextPos, end: TextPos) -> Self {
+        Self(start, end)
+    }
+}
+
+impl core::fmt::Display for TextRange {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{}-{}", self.0, self.1)
+    }
+}
+
+/// Calculate a [TextRange] from a [StrSpan] in text.
+pub fn span_text_range(text: &str, span: StrSpan) -> TextRange {
+    let start = span.start();
+    let end = span.end();
+
+    TextRange(
+        TextPos::new(row(text, start), col(text, start)),
+        TextPos::new(row(text, end), col(text, end)),
+    )
+}
+
+fn row(text: &str, end: usize) -> u32 {
+    let mut row = 1;
+    for c in &text.as_bytes()[..end] {
+        if *c == b'\n' {
+            row += 1;
+        }
+    }
+
+    row
+}
+
+fn col(text: &str, end: usize) -> u32 {
+    let mut col = 1;
+    for c in text[..end].chars().rev() {
+        if c == '\n' {
+            break;
+        } else {
+            col += 1;
+        }
+    }
+
+    col
+}
