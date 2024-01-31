@@ -26,12 +26,14 @@ println!("{document:#?}");
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
-use std::{borrow::Cow, collections::VecDeque};
+use std::{borrow::Cow, collections::VecDeque, fmt::Display};
 
 use trax_parser::{span_text_range as r, ElementEnd, TextRange, Token, Tokenizer};
 
+mod manipulation;
+
 /// A reference to an entity in one of the [`Document`] stores.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum EntityRef {
     /// A refrence to an element in the element store.
     Element(usize),
@@ -39,8 +41,17 @@ pub enum EntityRef {
     Text(usize),
 }
 
+impl Display for EntityRef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            EntityRef::Element(i) => write!(f, "Element at {i}"),
+            EntityRef::Text(i) => write!(f, "Text at {i}"),
+        }
+    }
+}
+
 /// A TRAX attribute/modifier.
-#[derive(Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct Attribute<'a> {
     prefix: Cow<'a, str>,
     local: Cow<'a, str>,
@@ -49,17 +60,21 @@ pub struct Attribute<'a> {
 
 impl<'a> Attribute<'a> {
     /// Creates a new Attribute from its raw parts without allocating.
-    pub fn new(prefix: &'a str, local: &'a str, value: Option<&'a str>) -> Self {
+    pub fn new<C: Into<Cow<'a, str>>, C2: Into<Cow<'a, str>>, C3: Into<Cow<'a, str>>>(
+        prefix: C,
+        local: C2,
+        value: Option<C3>,
+    ) -> Self {
         Self {
-            prefix: Cow::Borrowed(prefix),
-            local: Cow::Borrowed(local),
-            value: value.map(Cow::Borrowed),
+            prefix: prefix.into(),
+            local: local.into(),
+            value: value.map(|v| v.into()),
         }
     }
 }
 
 /// A TRAX element.
-#[derive(Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct Element<'a> {
     parent: usize,
     children: VecDeque<EntityRef>,
@@ -68,11 +83,18 @@ pub struct Element<'a> {
     attributes: VecDeque<Attribute<'a>>,
 }
 
+/// A segment of text.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct Text<'a> {
+    parent: usize,
+    content: Cow<'a, str>,
+}
+
 /// A TRAX document.
-#[derive(Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct Document<'a> {
-    element_store: Vec<Element<'a>>,
-    text_store: Vec<Cow<'a, str>>,
+    element_store: Vec<Option<Element<'a>>>,
+    text_store: Vec<Option<Text<'a>>>,
 }
 
 /// An error encountered when parsing/creating a [`Document`].
@@ -113,10 +135,10 @@ impl<'a> Document<'a> {
         let mut text_num = 0;
         let mut hierarchy = vec![0];
         let mut text_store = Vec::new();
-        let mut element_store = vec![Element {
+        let mut element_store = vec![Some(Element {
             local: Cow::Borrowed("document"),
             ..Default::default()
-        }];
+        })];
 
         for token in tokenizer {
             let token = token?;
@@ -132,16 +154,18 @@ impl<'a> Document<'a> {
 
                 Token::ElementStart { prefix, local, .. } => {
                     element_store[top_elem]
+                        .as_mut()
+                        .unwrap()
                         .children
                         .push_back(EntityRef::Element(element_num));
 
                     hierarchy.push(element_num);
-                    element_store.push(Element {
+                    element_store.push(Some(Element {
                         parent: top_elem,
                         prefix: Cow::Borrowed(prefix.as_str()),
                         local: Cow::Borrowed(local.as_str()),
                         ..Default::default()
-                    });
+                    }));
 
                     element_num += 1;
                 }
@@ -151,22 +175,32 @@ impl<'a> Document<'a> {
                     local,
                     value,
                     ..
-                } => element_store[top_elem].attributes.push_back(Attribute::new(
-                    prefix.as_str(),
-                    local.as_str(),
-                    Some(value.as_str()),
-                )),
+                } => element_store[top_elem]
+                    .as_mut()
+                    .unwrap()
+                    .attributes
+                    .push_back(Attribute::new(
+                        prefix.as_str(),
+                        local.as_str(),
+                        Some(value.as_str()),
+                    )),
 
                 Token::Modifier { prefix, local, .. } => element_store[top_elem]
+                    .as_mut()
+                    .unwrap()
                     .attributes
-                    .push_back(Attribute::new(prefix.as_str(), local.as_str(), None)),
+                    .push_back(Attribute::new(
+                        prefix.as_str(),
+                        local.as_str(),
+                        None::<&str>,
+                    )),
 
                 // Ending the *current* open element
                 Token::ElementEnd {
                     end: ElementEnd::Close(prefix, local),
                     ..
-                } if element_store[top_elem].prefix == prefix.as_str()
-                    && element_store[top_elem].local == local.as_str() =>
+                } if element_store[top_elem].as_ref().unwrap().prefix == prefix.as_str()
+                    && element_store[top_elem].as_ref().unwrap().local == local.as_str() =>
                 {
                     hierarchy.pop();
                 }
@@ -181,8 +215,8 @@ impl<'a> Document<'a> {
                     return Err(DocumentParseError::InvalidTreeStructure {
                         closed_elem: gen_full_name(prefix.as_str(), &local),
                         current_open_elem: gen_full_name(
-                            &current_open_elem.prefix,
-                            &current_open_elem.local,
+                            &current_open_elem.as_ref().unwrap().prefix,
+                            &current_open_elem.as_ref().unwrap().local,
                         ),
                         location: r(source, span),
                     });
@@ -190,10 +224,15 @@ impl<'a> Document<'a> {
 
                 Token::Text { text } => {
                     element_store[top_elem]
+                        .as_mut()
+                        .unwrap()
                         .children
                         .push_back(EntityRef::Text(text_num));
 
-                    text_store.push(Cow::Borrowed(text.as_str()));
+                    text_store.push(Some(Text {
+                        parent: top_elem,
+                        content: Cow::Borrowed(text.as_str()),
+                    }));
 
                     text_num += 1;
                 }
@@ -216,7 +255,7 @@ impl<'a> Document<'a> {
     fn elem_into_string(&self, root: usize, tab_level: usize) -> String {
         let mut res = String::new();
 
-        let element = &self.element_store[root];
+        let element = &self.element_store[root].as_ref().unwrap();
         let full_name = gen_full_name(&element.prefix, &element.local);
 
         for _ in 0..tab_level {
@@ -249,7 +288,7 @@ impl<'a> Document<'a> {
                         for _ in 0..tab_level + 1 {
                             res += "\t"
                         }
-                        res += &self.text_store[*child];
+                        res += &self.text_store[*child].as_ref().unwrap().content;
                         res += "\n";
                     }
                 };
