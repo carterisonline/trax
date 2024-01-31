@@ -13,7 +13,7 @@ let src = r#"<document>
 
 let document = trax_document::Document::new(src).unwrap();
 
-println!("{document#:?}");
+println!("{document:#?}");
 ```
 
 ## Safety
