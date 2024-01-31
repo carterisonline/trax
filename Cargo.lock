@@ -516,6 +516,7 @@ dependencies = [
 name = "trax-document"
 version = "0.1.0"
 dependencies = [
+ "criterion",
  "thiserror",
  "trax-parser",
 ]

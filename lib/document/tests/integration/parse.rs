@@ -68,7 +68,7 @@ mod test {
 
     #[test]
     fn can_reproduce_input() {
-        let src = include_str!("../../../../doc/todo.trax");
+        let src = include_str!("../testfiles/todo.trax");
         assert_eq!(Document::new(src).unwrap().into_string(), src);
     }
 }

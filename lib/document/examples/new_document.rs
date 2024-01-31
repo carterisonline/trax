@@ -17,8 +17,6 @@ fn main() {
 fn new_document(text: &str) -> Result<(), trax_document::DocumentParseError> {
     let document = trax_document::Document::new(text)?;
     println!("{:#?}", document);
-    println!("{}", document.into_string());
-
     Ok(())
 }
 

@@ -10,3 +10,10 @@ authors = ["Carter Reeb <me@carteris.online>"]
 [dependencies]
 thiserror = "1"
 trax-parser = { path = "../parser" }
+
+[dev-dependencies]
+criterion = "0.5.1"
+
+[[bench]]
+name = "document"
+harness = false

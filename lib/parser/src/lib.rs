@@ -1,5 +1,5 @@
 /*!
-Pull-based, zero-allocation TRAX parser.
+Pull-based, zero-allocation parser for TRAX.
 
 ## Example
 
