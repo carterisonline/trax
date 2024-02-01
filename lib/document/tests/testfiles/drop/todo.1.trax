@@ -1,0 +1,19 @@
+<document>
+	<class:Todo>
+		<let:title String />
+		<let:done Bool />
+		<let:created String />
+		<let:desc String />
+	</class:Todo>
+	<Frame>
+		<Head center>
+			<H1>
+				Example Website
+			</H1>
+		</Head>
+		<Body>
+			<Todo title="Do Laundry" created="2024-01-22 13:32:00" done />
+			<Todo title="Work on TRAX" created="2023-09-28 17:39:00" desc="gonna take a while" />
+		</Body>
+	</Frame>
+</document>

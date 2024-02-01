@@ -8,6 +8,12 @@ use crate::{Attribute, Document, Element, EntityRef};
 pub enum InsertElementError {
     #[error("couldn't insert into {0} because it wasn't found")]
     NotFound(EntityRef),
+
+    #[error("couldn't replace child {0} in {1} because {1} only has {2} children")]
+    ReplaceChildOutOfRange(usize, EntityRef, usize),
+
+    #[error("error while replacing child {0} in {1}: {2}")]
+    DropEntityError(usize, EntityRef, DropEntityError),
 }
 
 #[derive(Debug, Error)]
@@ -57,35 +63,78 @@ impl<'a> Document<'a> {
 
         let element_num = self.element_store.len();
 
-        if let Some(parent) = &mut self.element_store[parent_id] {
+        if self.element_store[parent_id].is_some() {
+            let parent_end = self.element_store[parent_id]
+                .as_mut()
+                .unwrap()
+                .children
+                .len()
+                - 1;
             match place_position {
                 PlacePosition::InsertFront => {
-                    parent.children.push_front(EntityRef::Element(element_num));
+                    self.element_store[parent_id]
+                        .as_mut()
+                        .unwrap()
+                        .children
+                        .push_front(EntityRef::Element(element_num));
                     Ok(())
                 }
                 PlacePosition::InsertBack => {
-                    parent.children.push_back(EntityRef::Element(element_num));
+                    self.element_store[parent_id]
+                        .as_mut()
+                        .unwrap()
+                        .children
+                        .push_back(EntityRef::Element(element_num));
                     Ok(())
                 }
                 PlacePosition::InsertFrontN(n) => {
-                    let parent_end = parent.children.len() - 1;
-                    parent
+                    self.element_store[parent_id]
+                        .as_mut()
+                        .unwrap()
                         .children
                         .insert(n.min(parent_end), EntityRef::Element(element_num));
 
                     Ok(())
                 }
                 PlacePosition::InsertBackN(n) => {
-                    let parent_end = parent.children.len() - 1;
-                    parent.children.insert(
-                        parent_end.saturating_sub(n),
-                        EntityRef::Element(element_num),
-                    );
+                    self.element_store[parent_id]
+                        .as_mut()
+                        .unwrap()
+                        .children
+                        .insert(
+                            parent_end.saturating_sub(n),
+                            EntityRef::Element(element_num),
+                        );
 
                     Ok(())
                 }
-                PlacePosition::Replace(_) => {
-                    todo!()
+                PlacePosition::Replace(n) => {
+                    if n > self.element_store[parent_id]
+                        .as_ref()
+                        .unwrap()
+                        .children
+                        .len()
+                        - 1
+                    {
+                        Err(InsertElementError::ReplaceChildOutOfRange(
+                            n,
+                            EntityRef::Element(parent_id),
+                            self.element_store[parent_id]
+                                .as_ref()
+                                .unwrap()
+                                .children
+                                .len()
+                                - 1,
+                        ))
+                    } else {
+                        self.drop(
+                            self.element_store[parent_id].as_ref().unwrap().children[n].clone(),
+                        )
+                        .map_err(|e| {
+                            InsertElementError::DropEntityError(n, EntityRef::Element(parent_id), e)
+                        })?;
+                        Ok(())
+                    }
                 }
             }
         } else {
@@ -95,48 +144,40 @@ impl<'a> Document<'a> {
 
     /// Manually drop an entity and its children
     pub fn drop(&mut self, entity_ref: EntityRef) -> Result<(), DropEntityError> {
-        self.drop_impl(&entity_ref, true)
+        self.drop_impl(entity_ref, true)
     }
 
     // this code may look dirty and disgusting, but it's incredibly fast. that's true beauty, baby
-    fn drop_impl(
-        &mut self,
-        entity_ref: &EntityRef,
-        is_parent: bool,
-    ) -> Result<(), DropEntityError> {
+    fn drop_impl(&mut self, entity_ref: EntityRef, is_parent: bool) -> Result<(), DropEntityError> {
         match entity_ref {
             EntityRef::Element(i) => {
-                if *i == 0 {
+                let element = self.element_store.get(i);
+                if i == 0 {
                     Err(DropEntityError::RefuseDropRoot)
-                } else if self.element_store.get(*i).is_some() {
-                    if self.element_store.get(*i).unwrap().is_some() {
-                        let children = &self
-                            .element_store
-                            .get(*i)
-                            .unwrap()
-                            .as_ref()
-                            .unwrap()
-                            .children;
+                } else if element.is_some() {
+                    if element.unwrap().is_some() {
+                        let children = &self.element_store[i].as_ref().unwrap().children;
 
                         // any way around this? we get mutability of the whole struct which rust hates
                         // but we know that each child is mutated independently of the parent or themselves
                         for child in children.clone() {
-                            self.drop_impl(&child, false)?;
+                            self.drop_impl(child, false)?;
                         }
 
                         if is_parent {
                             let mut sel = None;
-                            let parent =
-                                self.element_store.get(*i).unwrap().as_ref().unwrap().parent;
+                            let parent = self.element_store[i].as_ref().unwrap().parent;
+
                             for (j, c) in self.element_store[parent]
-                                .as_mut()
+                                .as_ref()
                                 .unwrap()
                                 .children
                                 .iter()
                                 .enumerate()
                             {
-                                if c == entity_ref {
-                                    sel = Some(j)
+                                if c == &entity_ref {
+                                    sel = Some(j);
+                                    break;
                                 }
                             }
 
@@ -153,7 +194,7 @@ impl<'a> Document<'a> {
                         return Err(DropEntityError::NotFound(entity_ref.clone()));
                     }
 
-                    *self.element_store.get_mut(*i).unwrap() = None;
+                    self.element_store[i] = None;
 
                     Ok(())
                 } else {
@@ -161,11 +202,11 @@ impl<'a> Document<'a> {
                 }
             }
             EntityRef::Text(i) => {
-                if self.text_store.get(*i).is_some() {
-                    if self.text_store.get(*i).unwrap().is_some() {
+                if self.text_store.get(i).is_some() {
+                    if self.text_store.get(i).unwrap().is_some() {
                         if is_parent {
                             let mut sel = None;
-                            let parent = self.text_store.get(*i).unwrap().as_ref().unwrap().parent;
+                            let parent = self.text_store[i].as_ref().unwrap().parent;
                             for (j, c) in self.element_store[parent]
                                 .as_mut()
                                 .unwrap()
@@ -173,8 +214,9 @@ impl<'a> Document<'a> {
                                 .iter()
                                 .enumerate()
                             {
-                                if c == entity_ref {
-                                    sel = Some(j)
+                                if c == &entity_ref {
+                                    sel = Some(j);
+                                    break;
                                 }
                             }
 
@@ -188,7 +230,7 @@ impl<'a> Document<'a> {
                             }
                         }
 
-                        *self.text_store.get_mut(*i).unwrap() = None;
+                        self.text_store[i] = None;
 
                         Ok(())
                     } else {
