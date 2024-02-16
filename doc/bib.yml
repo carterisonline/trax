@@ -1,6 +1,6 @@
 xml:
   type: web
-  url: http://www.w3.org/TR/2008/REC-xml-20081126/
+  url: https://www.w3.org/TR/2008/REC-xml-20081126/
   title: Extensible Markup Language (XML) 1.0
   date: 2008-11-26
   edition: 5
@@ -10,3 +10,58 @@ xml:
     - Sperberg-McQueen, C. M.
     - Maler, Eve
     - Yergeau, François
+
+peg:
+  type: Article
+  title: "Parsing Expression Grammars: A Recognition-Based Syntatic Foundation"
+  publisher: Association for Computing Machinery
+  date: 2004-01
+  url: https://bford.info/pub/lang/peg.pdf
+  page-range: 111-122
+  author: Ford, Bryan
+  serial-number:
+    doi: 10.1145/964001.964011
+    isbn: 1-58113-729-X
+  parent:
+    - type: Conference
+      title: Proceedings of the 31st ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages
+
+html:
+  type: web
+  title: The HTML Standard
+  publisher: Web Hypertext Application Technology Working Group
+  url: https://html.spec.whatwg.org/multipage/
+
+quic:
+  type: Article
+  title: "The QUIC Transport Protocol: Design and Internet-Scale Deployment"
+  page-range: 183-196
+  date: 2017
+  serial-number:
+    doi: 10.1145/3098822.3098842
+  author:
+    - Langley, Adam
+    - Riddoch, Alistair
+    - Wilk, Alyssa
+    - Vicente, Antonio
+    - Krasic, Charles
+    - Zhang, Dan
+    - Yang, Fan
+    - Kouranov, Fedor
+    - Swett, Ian
+    - Iyengar, Janardhan
+  parent:
+    - type: Conference
+      title: Proceedings of the conference of the ACM special interest group on data communication
+
+xpath:
+  type: web
+  title: XML Path Language (XPath) 3.1
+  publisher: The World Wide Web Consortium
+  url: "https://www.w3.org/TR/xpath-31/"
+
+csssel:
+  type: web
+  title: Selectors Level 4
+  publisher: The World Wide Web Consortium
+  url: "https://www.w3.org/TR/selectors-4/"
