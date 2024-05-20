@@ -1,5 +1,5 @@
 [workspace]
-members = ["lib/*"]
+members = ["bin/lsp-server", "bin/lsp-server-wasm", "lib/*"]
 resolver = "2"
 
 [profile.bench]

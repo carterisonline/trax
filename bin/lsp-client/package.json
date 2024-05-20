@@ -1,0 +1,70 @@
+{
+	"name": "trax-lsp-client",
+	"version": "0.1.0",
+	"description": "Provides language support for the TRAX",
+	"displayName": "TRAX Language Support",
+	"publisher": "carterisonline",
+	"main": "./dist/client.cjs",
+	"module": "src/extension.ts",
+	"icon": "trax.png",
+	"type": "module",
+	"categories": [
+		"Programming Languages"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/carterisonline/trax"
+	},
+	"activationEvents": [
+		"onLanguage:trax"
+	],
+	"contributes": {
+		"languages": [
+			{
+				"id": "trax",
+				"extensions": [
+					".trax"
+				]
+			}
+		],
+		"menus": {
+			"editor/context": [
+				{
+					"command": "extension.trax-lsp-client.restartServer"
+				}
+			]
+		},
+		"commands": [
+			{
+				"command": "extension.trax-lsp-client.restartServer",
+				"title": "trax-lsp-client: Restart Server"
+			}
+		]
+	},
+	"scripts": {
+		"build-client": "esbuild client=./src --bundle --outdir=dist --external:vscode --format=cjs --platform=node && mv dist/client.js dist/client.cjs",
+		"build-server": "esbuild server=./server --bundle --outdir=dist --external:vscode --format=cjs --platform=node && mv dist/server.js dist/server.cjs",
+		"build-server-wasm": "cd ../lsp-server-wasm && wasm-pack build --target nodejs --out-dir ../lsp-client/dist",
+		"build": "bun run build-server-wasm && bun run build-server && bun run build-client",
+		"watch": "bun run ./scripts/watch.ts",
+		"vsce-package": "bun run vsce package",
+		"package": "bun run build && bun run vsce-package",
+		"clean": "rm -r ./dist"
+	},
+	"dependencies": {
+		"vscode-languageclient": "^9.0.1",
+		"vscode-languageserver": "^9.0.1"
+	},
+	"devDependencies": {
+		"@types/vscode": "^1.80.0",
+		"@types/bun": "latest",
+		"@vscode/vsce": "^2.23.0",
+		"esbuild": "^0.20.0"
+	},
+	"peerDependencies": {
+		"typescript": "^5.0.0"
+	},
+	"engines": {
+		"vscode": "^1.80.0"
+	}
+}

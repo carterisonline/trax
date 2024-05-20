@@ -5,3 +5,9 @@ perf.data*
 flamegraph.svg
 
 doc/*.pdf
+
+lib/html-bridge/pkg
+
+**/node_modules
+**/dist
+*.vsix

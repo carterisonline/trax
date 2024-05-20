@@ -1,0 +1,26 @@
+<document>
+    <class:NumButton>
+        <Button onEvent:click="./action:insert">
+            <action:insert target="document/Blank#0" end>
+                <eval target="../../eval" />
+            </action:insert>
+            <eval target="document/Card/Blank#0/Blank#0/for.var" />
+        </Button>
+    </class:NumButton>
+
+    <Blank invisible></Blank>
+    <format>
+        <for var in="document/Blank">
+            <eval target="../.var" /> &#160;
+        </for>
+    </format>
+    <Card max="width height" direction="right" grid="3 2" textAlign="center center">
+        <Blank direction="down" grid="3 1" bgColor="#222">
+            <Blank direction="right up" grid="3x3">
+                <for var in="1..10">
+                    <NumButton />
+                </for>
+            </Blank>
+        </Blank>
+    </Card>
+</document>

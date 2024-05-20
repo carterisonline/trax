@@ -65,3 +65,11 @@ csssel:
   title: Selectors Level 4
   publisher: The World Wide Web Consortium
   url: "https://www.w3.org/TR/selectors-4/"
+
+ieee754:
+  type: article
+  title: IEEE Standard for Floating-Point Arithmetic
+  date: 2019
+  page-range: 1-84
+  serial-number:
+    doi: 10.1109/IEEESTD.2019.8766229
